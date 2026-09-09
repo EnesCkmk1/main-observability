@@ -27,6 +27,7 @@ class Settings(BaseSettings):
     input_cost_per_million: float | None = Field(default=None, ge=0)
     output_cost_per_million: float | None = Field(default=None, ge=0)
     retrieval_top_k: int = Field(default=2, ge=1, le=5)
+    retrieval_backend: Literal["lexical", "vector"] = "lexical"
     metrics_window: int = Field(default=10000, ge=10, le=100000)
 
     @model_validator(mode="after")

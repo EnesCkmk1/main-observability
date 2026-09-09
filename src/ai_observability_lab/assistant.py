@@ -13,7 +13,7 @@ from .guardrails import CLARIFY, DISCLAIMER, REFUSAL, UNKNOWN, check_input, chec
 from .metrics import Metrics
 from .models import Behavior, ChatRequest, ChatResponse
 from .providers import MockProvider, OpenAIProvider, Provider, ProviderFailure
-from .retrieval import Retriever, tokens
+from .retrieval import Retriever, VectorRetriever, tokens
 from .telemetry import Telemetry
 
 
@@ -24,7 +24,9 @@ class Assistant:
         self.provider = provider or (
             MockProvider() if settings.llm_provider == "mock" else OpenAIProvider(settings)
         )
-        self.retriever = Retriever()
+        self.retriever = (
+            Retriever() if settings.retrieval_backend == "lexical" else VectorRetriever()
+        )
         self.metrics = Metrics(settings.metrics_window)
 
     async def chat(self, request: ChatRequest, *, empty_retrieval: bool = False) -> ChatResponse:

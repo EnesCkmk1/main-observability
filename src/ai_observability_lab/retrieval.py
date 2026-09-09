@@ -1,6 +1,8 @@
 """Deterministic lexical retrieval with explicit no-match behavior."""
 
+import hashlib
 import json
+import math
 import re
 from importlib.resources import files
 
@@ -39,3 +41,30 @@ class Retriever:
             return []
         # Exclude weak secondary matches that share only generic product words.
         return [pair for pair in scored if pair[1].score >= scored[0][1].score * 0.8][:top_k]
+
+
+class VectorRetriever(Retriever):
+    """Dependency-free hashed-token vector baseline for offline experiments."""
+
+    dimensions = 128
+
+    @classmethod
+    def _vector(cls, text: str) -> list[float]:
+        vector = [0.0] * cls.dimensions
+        for token in tokens(text):
+            digest = hashlib.sha256(token.encode()).digest()
+            index = int.from_bytes(digest[:4], "big") % cls.dimensions
+            vector[index] += 1.0
+        norm = math.sqrt(sum(value * value for value in vector)) or 1.0
+        return [value / norm for value in vector]
+
+    def search(self, question: str, top_k: int = 2) -> list[tuple[Document, Source]]:
+        query = self._vector(question)
+        scored = []
+        for doc in self.documents:
+            vector = self._vector(doc.title + " " + " ".join(doc.keywords))
+            score = sum(left * right for left, right in zip(query, vector, strict=True))
+            if score >= 0.25:
+                scored.append((doc, Source(id=doc.id, title=doc.title, score=round(score, 4))))
+        scored.sort(key=lambda pair: (-pair[1].score, pair[0].id))
+        return scored[:top_k]

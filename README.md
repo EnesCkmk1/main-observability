@@ -20,6 +20,7 @@ Production-inspired observability lab for a fictional Banking Support Assistant.
 - [Repository layout](#repository-layout)
 - [Limitations](#limitations)
 - [Engineering decisions](#engineering-decisions)
+- [Production readiness](docs/production-readiness.md)
 
 ## Architecture
 
@@ -164,6 +165,8 @@ These screenshots were captured from the local Phoenix project after running the
 
 ![Phoenix trace detail](docs/phoenix-trace.png)
 
+![Phoenix observability walkthrough](docs/phoenix-demo.gif)
+
 ## Dynatrace
 
 Dynatrace is disabled by default. Enable the explicit Compose overlay with an HTTPS OTLP endpoint and a token with `openTelemetryTrace.ingest`:
@@ -236,6 +239,7 @@ The design rationale is recorded as short ADRs:
 - [`docs/adr/0003-deterministic-evaluation-gate.md`](docs/adr/0003-deterministic-evaluation-gate.md) — deterministic CI gate with optional model judging.
 
 Security reporting and contribution conventions are documented in [`SECURITY.md`](SECURITY.md) and [`CONTRIBUTING.md`](CONTRIBUTING.md).
+Operational trade-offs and incident flow are documented in [`docs/production-readiness.md`](docs/production-readiness.md). Set `RETRIEVAL_BACKEND=vector` to run the optional dependency-free hashed-vector baseline; lexical retrieval remains the default.
 
 ## Skills demonstrated
 
