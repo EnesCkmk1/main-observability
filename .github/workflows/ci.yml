@@ -18,7 +18,7 @@ jobs:
       - run: python -m pytest --cov=ai_observability_lab --cov-report=term-missing --cov-report=xml
       - run: make eval
       - run: make experiment
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: deterministic-experiment
           path: |
@@ -39,7 +39,7 @@ jobs:
       - if: always()
         run: docker compose down
       - if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: stack-verification
           path: reports/stack-verification.json
