@@ -234,9 +234,9 @@ GitHub Actions runs Ruff, mypy, pytest, the evaluation gate, report generation, 
 
 The design rationale is recorded as short ADRs:
 
-- [`docs/adr/0001-local-first-observability.md`](docs/adr/0001-local-first-observability.md) — reproducible local stack with optional fan-out.
-- [`docs/adr/0002-content-minimization.md`](docs/adr/0002-content-minimization.md) — privacy-first telemetry defaults.
-- [`docs/adr/0003-deterministic-evaluation-gate.md`](docs/adr/0003-deterministic-evaluation-gate.md) — deterministic CI gate with optional model judging.
+- [`docs/adr/0001-local-first-observability.md`](docs/adr/0001-local-first-observability.md) - reproducible local stack with optional fan-out.
+- [`docs/adr/0002-content-minimization.md`](docs/adr/0002-content-minimization.md) - privacy-first telemetry defaults.
+- [`docs/adr/0003-deterministic-evaluation-gate.md`](docs/adr/0003-deterministic-evaluation-gate.md) - deterministic CI gate with optional model judging.
 
 Security reporting and contribution conventions are documented in [`SECURITY.md`](SECURITY.md) and [`CONTRIBUTING.md`](CONTRIBUTING.md).
 Operational trade-offs and incident flow are documented in [`docs/production-readiness.md`](docs/production-readiness.md). Set `RETRIEVAL_BACKEND=vector` to run the optional dependency-free hashed-vector baseline; lexical retrieval remains the default.
