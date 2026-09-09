@@ -1,6 +1,6 @@
 # AI Observability Lab
 
-![Python](https://img.shields.io/badge/python-3.12%2B-3776AB?logo=python&logoColor=white) ![FastAPI](https://img.shields.io/badge/FastAPI-0.141-009688?logo=fastapi&logoColor=white) ![Tests](https://img.shields.io/badge/tests-91%20passing-2ea44f)
+![Python](https://img.shields.io/badge/python-3.12%2B-3776AB?logo=python&logoColor=white) ![FastAPI](https://img.shields.io/badge/FastAPI-0.141-009688?logo=fastapi&logoColor=white) ![Tests](https://img.shields.io/badge/tests-91%20passing-2ea44f) [![CI](https://github.com/EnesCkmk1/observability/actions/workflows/ci.yml/badge.svg)](https://github.com/EnesCkmk1/observability/actions/workflows/ci.yml)
 
 Production-inspired observability lab for a fictional Banking Support Assistant. The assistant uses a small local policy set; the engineering focus is traceability, evaluation, guardrails, prompt experiments, latency, token usage, and cost visibility.
 
@@ -10,6 +10,7 @@ Production-inspired observability lab for a fictional Banking Support Assistant.
 
 - [Architecture](#architecture)
 - [Run locally](#run-locally)
+- [Five-minute demo](#five-minute-demo)
 - [API contract](#api-contract)
 - [Tracing and privacy](#tracing-and-privacy)
 - [Evaluation and experiments](#evaluation-and-experiments)
@@ -18,6 +19,7 @@ Production-inspired observability lab for a fictional Banking Support Assistant.
 - [Testing and CI](#testing-and-ci)
 - [Repository layout](#repository-layout)
 - [Limitations](#limitations)
+- [Engineering decisions](#engineering-decisions)
 
 ## Architecture
 
@@ -73,6 +75,19 @@ curl -X POST http://localhost:8000/chat -H 'content-type: application/json' -d '
 | `make failures` | Generate controlled failure examples |
 | `make seed` | Validate packaged documents and dataset |
 | `make phoenix` | Start Phoenix, Collector, and API with Compose |
+
+## Five-minute demo
+
+Run the complete local path with deterministic data:
+
+```bash
+make phoenix
+python scripts/verify_stack.py
+make eval
+make experiment
+```
+
+The verification command sends a real request through FastAPI, waits for the OTLP trace in Phoenix, and writes [`reports/stack-verification.json`](reports/stack-verification.json). `make experiment` compares prompt versions and writes Markdown and JSON reports. Open Phoenix at `http://localhost:6006` while the stack is running.
 
 ## API contract
 
@@ -211,6 +226,16 @@ GitHub Actions runs Ruff, mypy, pytest, the evaluation gate, report generation, 
 - Mock token counts are estimates and mock cost is zero.
 - Groundedness and correctness are deterministic proxies, not semantic truth.
 - Guardrails are educational controls, not enterprise-complete security.
+
+## Engineering decisions
+
+The design rationale is recorded as short ADRs:
+
+- [`docs/adr/0001-local-first-observability.md`](docs/adr/0001-local-first-observability.md) — reproducible local stack with optional fan-out.
+- [`docs/adr/0002-content-minimization.md`](docs/adr/0002-content-minimization.md) — privacy-first telemetry defaults.
+- [`docs/adr/0003-deterministic-evaluation-gate.md`](docs/adr/0003-deterministic-evaluation-gate.md) — deterministic CI gate with optional model judging.
+
+Security reporting and contribution conventions are documented in [`SECURITY.md`](SECURITY.md) and [`CONTRIBUTING.md`](CONTRIBUTING.md).
 
 ## Skills demonstrated
 
