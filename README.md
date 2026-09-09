@@ -1,181 +1,218 @@
 # AI Observability Lab
 
-`ai-observability-lab` is a production-inspired personal engineering project that makes an AI support workflow observable, testable, and measurable. It implements a fictional Banking Support Assistant in Python and FastAPI, with a small local retrieval system, a deterministic mock provider, an optional OpenAI provider, OpenTelemetry traces, OpenInference semantic attributes, Arize Phoenix, evaluation annotations, prompt experiments, guardrails, and CI.
+![Python](https://img.shields.io/badge/python-3.12%2B-3776AB?logo=python&logoColor=white) ![FastAPI](https://img.shields.io/badge/FastAPI-0.141-009688?logo=fastapi&logoColor=white) ![Tests](https://img.shields.io/badge/tests-91%20passing-2ea44f)
 
-The project contains only fictional banking policies. It is not a banking system, a production security boundary, or evidence of professional use of Phoenix or Dynatrace. It demonstrates hands-on implementation patterns that can be inspected and run locally.
+Production-inspired observability lab for a fictional Banking Support Assistant. The assistant uses a small local policy set; the engineering focus is traceability, evaluation, guardrails, prompt experiments, latency, token usage, and cost visibility.
 
-## Business problem
+> This is a personal engineering project with fictional data. It is not a banking system, an enterprise security boundary, or a claim of professional Phoenix or Dynatrace experience.
 
-A useful answer from an AI assistant is not enough. An engineering team also needs to know which documents were retrieved, which prompt version was used, how long retrieval and model execution took, whether a response cited valid evidence, what it cost, and why a request was refused. This lab treats each answer as an observable and evaluable workflow.
+## Contents
+
+- [Architecture](#architecture)
+- [Run locally](#run-locally)
+- [API contract](#api-contract)
+- [Tracing and privacy](#tracing-and-privacy)
+- [Evaluation and experiments](#evaluation-and-experiments)
+- [Phoenix](#phoenix)
+- [Dynatrace](#dynatrace)
+- [Testing and CI](#testing-and-ci)
+- [Repository layout](#repository-layout)
+- [Limitations](#limitations)
 
 ## Architecture
 
 ```mermaid
 flowchart LR
-    Client[Client] --> API[FastAPI]
-    API --> Guard[Input and output guardrails]
-    Guard --> Agent[Assistant orchestration]
-    Agent --> Prompt[Versioned prompt]
-    Agent --> Retriever[Deterministic lexical retriever]
-    Retriever --> KB[(18 fictional policy documents)]
-    Agent --> Provider{LLM provider}
-    Provider --> Mock[Mock provider, default]
-    Provider --> OpenAI[OpenAI Responses API, optional]
-    API --> OTel[OpenTelemetry spans]
-    OTel --> Collector[OTel Collector]
-    Collector --> Phoenix[Arize Phoenix :6006]
-    Collector -. optional .-> Dynatrace[Dynatrace OTLP HTTP]
-    Dataset[40 versioned evaluation cases] --> Eval[Deterministic evaluators]
-    Eval --> Phoenix
-    Eval --> Report[Markdown and JSON reports]
+    C[Client] --> API[FastAPI]
+    API --> G[Guardrails]
+    G --> A[Assistant orchestration]
+    A --> P[Prompt v1 / v2]
+    A --> R[Lexical retriever]
+    R --> KB[(18 fictional documents)]
+    A --> LLM{Provider}
+    LLM --> M[Mock - default]
+    LLM --> O[OpenAI - optional]
+    API --> OT[OpenTelemetry]
+    OT --> OC[OTel Collector]
+    OC --> PX[Arize Phoenix]
+    OC -. optional .-> DT[Dynatrace OTLP/HTTP]
+    D[40-case JSONL dataset] --> E[Deterministic evaluators]
+    E --> PX
+    E --> REP[Reports]
 ```
 
-The request trace is an HTTP server span with child spans for session, agent execution, guardrails, prompt construction, retrieval, each retrieval result, the model request, response generation, and evaluation. Attributes are allowlisted. Message content capture is disabled by default; session IDs are hashed before they become attributes.
+The request trace is an HTTP server span with child spans for `session`, `agent.execution`, input/output guardrails, prompt construction, retrieval, every retrieval result, the LLM request, response generation, and evaluation.
 
-## What is included
+## Run locally
 
-- `GET /health`, `POST /chat`, `POST /evaluate`, and `GET /metrics-summary`.
-- 18 fictional documents and 40 evaluation cases: 20 normal, 5 ambiguous, 5 unanswerable, 5 sensitive, and 5 prompt-injection cases.
-- Deterministic retrieval with explicit no-match behavior and source IDs.
-- `v1` and `v2` prompts. v2 adds citation requirements, grounded refusal, and clearer treatment of untrusted instructions.
-- Offline deterministic scores for answer presence, source validity, keyword coverage, refusal accuracy, guardrail compliance, latency, retrieval precision, correctness, groundedness proxy, and citation accuracy.
-- Optional LLM-as-a-judge scoring for relevance, correctness, groundedness, hallucination risk, helpfulness, tone, and safety. It requires an OpenAI key and is never part of the offline CI gate.
-- Failure simulation for slow responses, empty retrieval, hallucination, invalid citation, prompt injection, provider timeout, provider error, and guardrail rejection.
-- Per-process bounded metrics for request count, errors, p50/p95 latency, token estimates, cost, guardrails, prompt versions, and evaluation pass rate.
-- Phoenix span annotations using the current Phoenix client API.
-- Optional Collector fan-out to Dynatrace over OTLP HTTP/protobuf. Dynatrace is not required for the default stack.
-
-## Quick start
-
-The default path uses the mock provider and needs no API key.
+The default path needs no API key or external service:
 
 ```bash
 git clone https://github.com/EnesCkmk1/observability.git
 cd observability
 python -m venv .venv
-source .venv/bin/activate             # Windows: .venv\Scripts\Activate.ps1
+source .venv/bin/activate              # Windows: .venv\\Scripts\\Activate.ps1
 python -m pip install -r requirements-dev.lock
 python -m pip install --no-deps -e .
-cp .env.example .env                 # Windows: Copy-Item .env.example .env
-make test
+cp .env.example .env                  # Windows: Copy-Item .env.example .env
+uvicorn ai_observability_lab.api:app --reload --no-access-log
+```
+
+Try the API:
+
+```bash
+curl -X POST http://localhost:8000/chat -H 'content-type: application/json' -d '{"question":"How do I reset my business banking password?","session_id":"demo-session","prompt_version":"v2"}'
+```
+
+| Command | Purpose |
+|---|---|
+| `make test` | Run 91 unit, integration, evaluator, and telemetry tests |
+| `make lint` | Run Ruff and mypy |
+| `make eval` | Run the v2 deterministic regression gate |
+| `make experiment` | Compare v1/v2 and write `reports/` |
+| `make failures` | Generate controlled failure examples |
+| `make seed` | Validate packaged documents and dataset |
+| `make phoenix` | Start Phoenix, Collector, and API with Compose |
+
+## API contract
+
+`POST /chat` accepts:
+
+```json
+{"question":"How do I reset my business banking password?","session_id":"demo-session","prompt_version":"v2"}
+```
+
+The response includes `answer`, cited `sources`, `trace_id`, `span_id`, `latency_ms`, `llm_latency_ms`, `retrieval_latency_ms`, `prompt_version`, `behavior`, `guardrail_triggered`, token counts, and `estimated_cost`.
+
+Other routes are `GET /health`, `POST /evaluate`, and `GET /metrics-summary`. The latter is a bounded per-process summary, not a distributed metrics store.
+
+## Tracing and privacy
+
+```text
+HTTP request -> session -> agent.execution
+                     ├── guardrail.input
+                     ├── document.retrieval -> retrieval.result*
+                     ├── prompt.construction
+                     ├── llm.request
+                     ├── guardrail.output
+                     └── response.generation
+```
+
+Important attributes include `session.id` (a SHA-256 prefix), `prompt.version`, `llm.provider`, `llm.model_name`, `retrieved_document_count`, `retrieval_scores`, `llm.token_count.*`, `estimated_cost`, `latency_ms`, `guardrail.triggered`, and `evaluation.*`.
+
+`CAPTURE_MESSAGE_CONTENT=false` is the default. The application does not automatically record authorization headers, raw exceptions, API keys, or message content. The opt-in content flag is intended only for synthetic local data.
+
+## Evaluation and experiments
+
+The dataset contains 40 version-controlled cases: 20 normal, 5 ambiguous, 5 unanswerable, 5 sensitive, and 5 prompt-injection examples. Expected behavior, document IDs, keywords, and refusal requirements are stored in [`src/ai_observability_lab/data/evaluation.jsonl`](src/ai_observability_lab/data/evaluation.jsonl).
+
+Deterministic evaluators measure answer presence, source validity, keyword coverage, refusal accuracy, guardrail compliance, latency threshold, retrieval precision, correctness, groundedness proxy, and citation accuracy. CI fails when v2 falls below thresholds or an adversarial case fails individually.
+
+```bash
 make eval
 make experiment
 ```
 
-Run the API without Docker:
+The experiment writes [`reports/experiment-report.md`](reports/experiment-report.md) and [`reports/experiment-results.json`](reports/experiment-results.json). The generated mock run reports citation accuracy of `0.50` for v1 and `1.00` for v2. This measures the mock citation contract, not real-model quality. Mock token counts are whitespace estimates, mock cost is zero, and groundedness is a lexical proxy.
+
+The optional LLM judge requires `LLM_PROVIDER=openai`, `OPENAI_API_KEY`, and `JUDGE_ENABLED=true`:
 
 ```bash
-uvicorn ai_observability_lab.api:app --reload --no-access-log
-curl -X POST http://localhost:8000/chat \
-  -H 'content-type: application/json' \
-  -d '{"question":"How do I reset my business banking password?","session_id":"demo-session","prompt_version":"v2"}'
+python -m ai_observability_lab.cli judge
 ```
 
-The response contains the answer, cited sources, trace ID, span ID, latency, prompt version, token counts, and whether token counts are estimates. The mock provider always works offline.
+It returns structured relevance, correctness, groundedness, hallucination-risk, helpfulness, tone, and safety scores.
 
-## Phoenix and the full local stack
+## Phoenix
 
-Docker Compose starts Phoenix at [http://localhost:6006](http://localhost:6006), the Collector on `localhost:4318`, and the API on `localhost:8000`:
+```text
+application -> OTLP/HTTP -> Collector -> Phoenix (:6006)
+                                      └-> Dynatrace (optional)
+```
+
+Start and verify the local stack:
 
 ```bash
 make phoenix
 python scripts/verify_stack.py
 ```
 
-Open Phoenix, select the `banking-assistant-observability` project, and inspect the trace from the verification script. The verification script sends a real evaluation request, waits for the trace, and checks that deterministic annotations are present on the agent span. The checked-in [`reports/stack-verification.json`](reports/stack-verification.json) is an example generated from that flow; its IDs and timestamp are run-specific.
+Open [http://localhost:6006](http://localhost:6006), select `banking-assistant-observability`, and inspect the trace. The verification script sends a real evaluation request, waits for its trace, and checks deterministic annotations on the agent span. [`reports/stack-verification.json`](reports/stack-verification.json) contains evidence from one successful run.
 
-The Phoenix project name is sent as the `openinference.project.name` resource attribute. The Collector forwards OTLP traces to Phoenix and uses batching, a memory limit, retry, and a bounded queue.
-
-## Evaluation and prompt experiments
-
-The dataset is packaged in [`src/ai_observability_lab/data/evaluation.jsonl`](src/ai_observability_lab/data/evaluation.jsonl). Run the offline gate with:
-
-```bash
-make eval
-make experiment
-```
-
-The experiment runs both prompt versions against the same cases and writes [`reports/experiment-report.md`](reports/experiment-report.md) and [`reports/experiment-results.json`](reports/experiment-results.json). The generated mock run currently shows citation accuracy changing from 0.50 for v1 to 1.00 for v2. This is a test of the prompt/citation contract, not a claim about a real model. Mock token counts are whitespace estimates and mock cost is zero. Groundedness is a lexical proxy. Per-case results and a dataset SHA-256 are included so the result can be reproduced and audited.
-
-For Phoenix's Experiments UI, start Phoenix and run `python -m ai_observability_lab.cli phoenix-experiment`. This publishes a synthetic dataset and two Phoenix experiments with code evaluators. No real customer data is used.
-
-## Configuration
-
-Copy `.env.example` to `.env`. Important settings are:
-
-| Variable | Default | Purpose |
-|---|---|---|
-| `LLM_PROVIDER` | `mock` | `mock` or `openai` |
-| `OPENAI_API_KEY` | empty | Required only for the OpenAI provider or judge |
-| `OPENAI_MODEL` | `gpt-5.5` | OpenAI Responses API model |
-| `CAPTURE_MESSAGE_CONTENT` | `false` | Synthetic-data-only opt-in for message attributes |
-| `TELEMETRY_ENABLED` | `false` | Export application spans via OTLP HTTP |
-| `OTEL_EXPORTER_OTLP_TRACES_ENDPOINT` | `http://localhost:4318/v1/traces` | Collector or Phoenix OTLP endpoint |
-| `PHOENIX_ANNOTATIONS_ENABLED` | `false` | Upload deterministic scores to Phoenix |
-| `DYNATRACE_ENABLED` | `false` | Enables the Dynatrace Compose overlay |
-| `DYNATRACE_OTLP_ENDPOINT` | empty | HTTPS Dynatrace OTLP base URL |
-| `DYNATRACE_API_TOKEN` | empty | Secret trace ingest token |
-
-The OpenAI path uses the Responses API with `store=false`, zero retries, and a timeout. Do not commit `.env` or credentials. The app rejects OpenAI/judge configuration without a key and rejects Dynatrace configuration without an HTTPS endpoint and token.
+The Collector uses OTLP/HTTP input, `memory_limiter`, `batch`, bounded retry, and a bounded queue. Phoenix receives the project name through `openinference.project.name`.
 
 ## Dynatrace
 
-Enable the fan-out overlay only when you have a Dynatrace tenant:
+Dynatrace is disabled by default. Enable the explicit Compose overlay with an HTTPS OTLP endpoint and a token with `openTelemetryTrace.ingest`:
 
-```bash
-$env:DYNATRACE_ENABLED="true"       # PowerShell; use export on POSIX shells
-$env:DYNATRACE_OTLP_ENDPOINT="https://YOUR_ENV.live.dynatrace.com/api/v2/otlp"
-$env:DYNATRACE_API_TOKEN="..."
+```powershell
+$env:DYNATRACE_ENABLED = "true"
+$env:DYNATRACE_OTLP_ENDPOINT = "https://YOUR_ENV.live.dynatrace.com/api/v2/otlp"
+$env:DYNATRACE_API_TOKEN = "<secret>"
 python scripts/compose.py up -d --build --wait
 ```
 
-Use a token with the `openTelemetryTrace.ingest` scope. The Collector sends traces to both Phoenix and Dynatrace through OTLP HTTP; tokens are provided as environment variables and Collector logs run at warning level. Dynatrace dashboards can use service availability, p95 response latency, error rate, groundedness, citation accuracy, and guardrail violations as alert inputs. Suggested objectives are availability ≥99%, p95 under 3 seconds, groundedness pass rate ≥90%, citation accuracy ≥95%, and zero critical guardrail violations.
+The Collector fans out traces to Phoenix and Dynatrace. Secrets are environment-only. Suggested SLOs are availability >=99%, p95 below 3 seconds, groundedness >=90%, citation accuracy >=95%, and zero critical guardrail violations.
 
-## Security and privacy
+## Configuration
 
-The knowledge base and dataset are fictional. The default telemetry configuration does not record raw message content, authorization headers, API keys, secrets, or personal identifiers. Input guardrails detect prompt injection, secret requests, personal customer data, and unsupported personalized financial advice. Output validation rejects unknown citations and obvious sensitive content. These are educational controls, not enterprise-complete security; production deployments need threat modeling, access control, redaction, retention policy, abuse monitoring, and provider governance.
+All variables are documented in [`.env.example`](.env.example). The important defaults are:
+
+| Variable | Default | Effect |
+|---|---|---|
+| `LLM_PROVIDER` | `mock` | Select `mock` or `openai` |
+| `OPENAI_API_KEY` | empty | Required by OpenAI provider/judge |
+| `OPENAI_MODEL` | `gpt-5.5` | Responses API model |
+| `TELEMETRY_ENABLED` | `false` | Enable OTLP export |
+| `OTEL_EXPORTER_OTLP_TRACES_ENDPOINT` | `http://localhost:4318/v1/traces` | OTLP target |
+| `PHOENIX_ANNOTATIONS_ENABLED` | `false` | Upload evaluation annotations |
+| `CAPTURE_MESSAGE_CONTENT` | `false` | Synthetic-data-only content capture |
+| `DYNATRACE_ENABLED` | `false` | Use Dynatrace Compose overlay |
+| `PROVIDER_TIMEOUT_SECONDS` | `15` | Bounded provider timeout |
+
+Validation rejects missing keys, non-HTTPS Dynatrace endpoints, invalid URLs, unsafe retrieval limits, and annotations without telemetry.
 
 ## Testing and CI
 
 ```bash
-make lint       # Ruff and mypy
-make test       # 91 unit/integration/evaluator/telemetry tests
-make eval       # v2 regression gate
-make failures   # reports/failure-results.json
+make lint
+make test
+make eval
 ```
 
-GitHub Actions runs Ruff, mypy, pytest, the evaluation gate, report generation, Compose validation, and a Phoenix trace/annotation smoke test. The test suite uses the mock provider and includes API, retrieval, guardrail, configuration, metrics, evaluation, and privacy-oriented telemetry checks.
+GitHub Actions runs Ruff, mypy, pytest, the evaluation gate, report generation, Compose validation, and the Phoenix trace/annotation smoke test. Tests cover API behavior, retrieval, guardrails, configuration, metrics, evaluator behavior, span hierarchy, privacy defaults, provider failure sanitization, and regression thresholds.
 
-## Repository map
+## Repository layout
 
-```text
-src/ai_observability_lab/   API, orchestration, providers, tracing, evaluation
-src/.../data/                Fictional knowledge base and evaluation JSONL
-src/.../prompts/             v1 and v2 prompt templates
-config/                      Local and Dynatrace Collector configurations
-scripts/                     Compose launcher and end-to-end stack verification
-tests/                       91 automated tests
-reports/                     Generated deterministic experiment and smoke-test evidence
-```
+| Path | Responsibility |
+|---|---|
+| `src/ai_observability_lab/api.py` | FastAPI app and routes |
+| `assistant.py` / `providers.py` | Traced orchestration and providers |
+| `retrieval.py` / `data/` | Local retriever, knowledge base, dataset |
+| `evaluation.py` / `experiments.py` | Scoring, annotations, v1/v2 comparison |
+| `telemetry.py` / `guardrails.py` | OpenTelemetry and safety controls |
+| `config/` | Local and Dynatrace Collector configs |
+| `scripts/` | Compose launcher and end-to-end verification |
+| `tests/` | 91 automated tests |
+| `reports/` | Generated experiment and stack evidence |
 
-## Limitations and future improvements
+## Limitations
 
-The retriever is lexical and intentionally small, metrics are process-local, and the mock provider cannot represent semantic LLM behavior. A production version would add embeddings with a privacy-reviewed store, durable metrics, trace sampling and retention controls, stronger redaction, load tests, authenticated Phoenix access, richer semantic evaluators, and model-specific cost catalogs. The optional judge is deliberately separate from CI so external model drift cannot silently change the deterministic gate.
+- Retrieval is lexical and intentionally small; this is not an embedding benchmark.
+- Metrics are bounded and process-local; use a backend for multi-instance deployments.
+- Mock token counts are estimates and mock cost is zero.
+- Groundedness and correctness are deterministic proxies, not semantic truth.
+- Guardrails are educational controls, not enterprise-complete security.
+- Screenshots are omitted intentionally; capture Phoenix views from your own environment.
 
 ## Skills demonstrated
 
 AI/LLM observability · distributed tracing · OpenTelemetry and OTLP · OpenInference · Arize Phoenix · Dynatrace telemetry integration · LLM evaluation · RAG evaluation · LLM-as-a-judge · prompt versioning · dataset-driven experiments · guardrails · regression testing · FastAPI · Docker · CI/CD.
 
-## Portfolio wording
+## Portfolio text
 
-Suggested GitHub description: **Production-inspired AI observability lab: a traced and evaluated fictional banking RAG assistant with OpenTelemetry, Phoenix, prompt experiments, guardrails, and optional Dynatrace fan-out.**
+**GitHub description:** Production-inspired AI observability lab: a traced and evaluated fictional banking RAG assistant with OpenTelemetry, Phoenix, prompt experiments, guardrails, and optional Dynatrace fan-out.
 
-Suggested topics: `ai-observability`, `llm-observability`, `opentelemetry`, `openinference`, `arize-phoenix`, `rag-evaluation`, `llm-evaluation`, `fastapi`, `python`, `docker`, `dynatrace`, `ai-engineering`.
+**CV wording:** Built a production-inspired Python/FastAPI banking-support RAG lab with OpenTelemetry/OpenInference tracing, Phoenix span annotations, deterministic RAG and guardrail evaluations, prompt-version experiments, failure simulation, and optional Dynatrace OTLP fan-out; added a 91-test CI and reproducible mock-provider reports.
 
-Suggested CV wording: **Built a production-inspired Python/FastAPI banking-support RAG lab with OpenTelemetry/OpenInference tracing, Phoenix span annotations, deterministic RAG and guardrail evaluations, prompt-version experiments, failure simulation, and optional Dynatrace OTLP fan-out; added 91-test CI and reproducible mock-provider reports.**
-
-Suggested LinkedIn wording: **Personal engineering project exploring how to make LLM applications measurable: trace every retrieval and model step, evaluate groundedness and citations, compare prompt versions, simulate failure modes, and export OpenTelemetry telemetry to Phoenix or Dynatrace.**
-
-## Screenshots
-
-Screenshots are intentionally left as placeholders until a maintainer captures their own Phoenix workspace and local API flow. Recommended captures are: the trace waterfall, retrieval and LLM span attributes, evaluation annotations, and the prompt experiment comparison.
+**Suggested topics:** `ai-observability` `llm-observability` `opentelemetry` `openinference` `arize-phoenix` `rag-evaluation` `llm-evaluation` `fastapi` `python` `docker` `dynatrace` `ai-engineering`
