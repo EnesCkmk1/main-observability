@@ -208,11 +208,3 @@ GitHub Actions runs Ruff, mypy, pytest, the evaluation gate, report generation, 
 ## Skills demonstrated
 
 AI/LLM observability · distributed tracing · OpenTelemetry and OTLP · OpenInference · Arize Phoenix · Dynatrace telemetry integration · LLM evaluation · RAG evaluation · LLM-as-a-judge · prompt versioning · dataset-driven experiments · guardrails · regression testing · FastAPI · Docker · CI/CD.
-
-## Portfolio text
-
-**GitHub description:** Production-inspired AI observability lab: a traced and evaluated fictional banking RAG assistant with OpenTelemetry, Phoenix, prompt experiments, guardrails, and optional Dynatrace fan-out.
-
-**CV wording:** Built a production-inspired Python/FastAPI banking-support RAG lab with OpenTelemetry/OpenInference tracing, Phoenix span annotations, deterministic RAG and guardrail evaluations, prompt-version experiments, failure simulation, and optional Dynatrace OTLP fan-out; added a 91-test CI and reproducible mock-provider reports.
-
-**Suggested topics:** `ai-observability` `llm-observability` `opentelemetry` `openinference` `arize-phoenix` `rag-evaluation` `llm-evaluation` `fastapi` `python` `docker` `dynatrace` `ai-engineering`
