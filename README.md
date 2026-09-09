@@ -141,6 +141,14 @@ Open [http://localhost:6006](http://localhost:6006), select `banking-assistant-o
 
 The Collector uses OTLP/HTTP input, `memory_limiter`, `batch`, bounded retry, and a bounded queue. Phoenix receives the project name through `openinference.project.name`.
 
+### Phoenix screenshots
+
+These screenshots were captured from the local Phoenix project after running the verification flow.
+
+![Phoenix project overview](docs/phoenix-project.png)
+
+![Phoenix trace detail](docs/phoenix-trace.png)
+
 ## Dynatrace
 
 Dynatrace is disabled by default. Enable the explicit Compose overlay with an HTTPS OTLP endpoint and a token with `openTelemetryTrace.ingest`:
@@ -203,7 +211,6 @@ GitHub Actions runs Ruff, mypy, pytest, the evaluation gate, report generation, 
 - Mock token counts are estimates and mock cost is zero.
 - Groundedness and correctness are deterministic proxies, not semantic truth.
 - Guardrails are educational controls, not enterprise-complete security.
-- Screenshots are omitted intentionally; capture Phoenix views from your own environment.
 
 ## Skills demonstrated
 
