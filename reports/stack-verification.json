@@ -1,0 +1,10 @@
+{
+  "health": {
+    "status": "ok",
+    "service": "ai-observability-lab"
+  },
+  "trace_id": "4dad70bccb706182cd08f9f803d4d7b7",
+  "span_id": "45a5f42242df98a5",
+  "annotation_count": 13,
+  "verified_at_unix": 1788967171.5110307
+}

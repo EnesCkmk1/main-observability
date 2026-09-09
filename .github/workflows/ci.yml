@@ -1,0 +1,41 @@
+name: Quality and observability verification
+on: [push, pull_request]
+permissions:
+  contents: read
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: make setup
+      - run: make lint
+      - run: make test
+      - run: make eval
+      - run: make experiment
+      - uses: actions/upload-artifact@v4
+        with:
+          name: deterministic-experiment
+          path: reports/
+  docker-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: make setup
+      - run: docker compose config --quiet
+      - run: docker compose up -d --build --wait --wait-timeout 180
+      - run: python scripts/verify_stack.py
+      - if: always()
+        run: docker compose down
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: stack-verification
+          path: reports/stack-verification.json

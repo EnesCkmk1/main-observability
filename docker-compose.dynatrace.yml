@@ -1,0 +1,8 @@
+# Explicit overlay selects fan-out; default Compose never loads Dynatrace configuration.
+services:
+  collector:
+    volumes:
+      - ./config/otel-collector-dynatrace.yaml:/etc/otel/config.yaml:ro
+    environment:
+      DYNATRACE_OTLP_ENDPOINT: ${DYNATRACE_OTLP_ENDPOINT:?Set an HTTPS Dynatrace OTLP base URL}
+      DYNATRACE_API_TOKEN: ${DYNATRACE_API_TOKEN:?Set a trace ingest token}

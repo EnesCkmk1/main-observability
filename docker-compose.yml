@@ -1,0 +1,48 @@
+name: ai-observability-lab
+services:
+  phoenix:
+    image: arizephoenix/phoenix:version-20.9.0
+    ports:
+      - "127.0.0.1:6006:6006"
+    environment:
+      PHOENIX_WORKING_DIR: /data
+    volumes:
+      - phoenix-data:/data
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:6006/healthz')"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+    restart: unless-stopped
+  collector:
+    image: otel/opentelemetry-collector-contrib:0.160.0
+    command: ["--config=/etc/otel/config.yaml"]
+    volumes:
+      - ./config/otel-collector.yaml:/etc/otel/config.yaml:ro
+    ports:
+      - "127.0.0.1:4318:4318"
+    depends_on:
+      phoenix:
+        condition: service_healthy
+    restart: unless-stopped
+  app:
+    build: .
+    ports:
+      - "127.0.0.1:8000:8000"
+    environment:
+      LLM_PROVIDER: ${LLM_PROVIDER:-mock}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      OPENAI_MODEL: ${OPENAI_MODEL:-gpt-5.5}
+      CAPTURE_MESSAGE_CONTENT: ${CAPTURE_MESSAGE_CONTENT:-false}
+      TELEMETRY_ENABLED: "true"
+      OTEL_EXPORTER_OTLP_TRACES_ENDPOINT: http://collector:4318/v1/traces
+      PHOENIX_ENDPOINT: http://phoenix:6006
+      PHOENIX_ANNOTATIONS_ENABLED: "true"
+    depends_on:
+      phoenix:
+        condition: service_healthy
+      collector:
+        condition: service_started
+    restart: unless-stopped
+volumes:
+  phoenix-data:

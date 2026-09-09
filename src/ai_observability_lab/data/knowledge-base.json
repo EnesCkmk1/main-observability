@@ -1,0 +1,223 @@
+[
+  {
+    "id": "password-reset",
+    "title": "Business password reset",
+    "content": "Select Forgot password on the fictional business banking login page. Complete verification using your registered device, then choose a new password.",
+    "keywords": [
+      "reset",
+      "password",
+      "forgotten",
+      "login",
+      "business"
+    ]
+  },
+  {
+    "id": "card-block",
+    "title": "Block a lost card",
+    "content": "Open Cards in the fictional app and choose Block card immediately. Contact fictional support if you cannot sign in.",
+    "keywords": [
+      "card",
+      "block",
+      "blocking",
+      "lost",
+      "stolen",
+      "freeze"
+    ]
+  },
+  {
+    "id": "transfer-limits",
+    "title": "Transfer transaction limits",
+    "content": "The fictional standard transfer limit is 10000 demo units per day. An account administrator can request a limit review in Settings.",
+    "keywords": [
+      "transfer",
+      "transaction",
+      "limit",
+      "limits",
+      "daily"
+    ]
+  },
+  {
+    "id": "business-access",
+    "title": "Business account access",
+    "content": "An existing administrator can invite a colleague from Business access. Assign the least privileged role and require device verification.",
+    "keywords": [
+      "business",
+      "account",
+      "access",
+      "colleague",
+      "invite",
+      "permissions"
+    ]
+  },
+  {
+    "id": "suspicious-transaction",
+    "title": "Suspicious transactions",
+    "content": "Open the transaction and select Report suspicious activity. Block affected cards and contact fictional support. Never share verification codes.",
+    "keywords": [
+      "suspicious",
+      "transaction",
+      "transactions",
+      "report",
+      "fraud"
+    ]
+  },
+  {
+    "id": "international-transfer",
+    "title": "International transfers",
+    "content": "For an international transfer, enter the recipient IBAN and BIC, check the currency and displayed fee, and review before confirming. Delivery can take 1 to 3 business days.",
+    "keywords": [
+      "international",
+      "overseas",
+      "transfer",
+      "transfers",
+      "iban",
+      "bic"
+    ]
+  },
+  {
+    "id": "opening-hours",
+    "title": "Support opening hours",
+    "content": "Fictional general support is open Monday to Friday, 09:00 to 17:00. Card blocking is available in the app at all times.",
+    "keywords": [
+      "support",
+      "opening",
+      "hours",
+      "open",
+      "weekday"
+    ]
+  },
+  {
+    "id": "verification",
+    "title": "Customer identity verification",
+    "content": "Complete customer identity verification only inside the fictional secure app. Use the document upload flow; never send identity documents in chat.",
+    "keywords": [
+      "customer",
+      "identity",
+      "verification",
+      "verify",
+      "documents"
+    ]
+  },
+  {
+    "id": "statement-download",
+    "title": "Download account statements",
+    "content": "Open Accounts, choose Statements, select a date range, and download a PDF. Business administrators control statement access.",
+    "keywords": [
+      "download",
+      "account",
+      "statement",
+      "statements",
+      "pdf"
+    ]
+  },
+  {
+    "id": "card-pin",
+    "title": "View card PIN",
+    "content": "Open Cards and choose View PIN after device verification. Never disclose your PIN to support or in chat.",
+    "keywords": [
+      "card",
+      "pin",
+      "view",
+      "forgotten"
+    ]
+  },
+  {
+    "id": "address-change",
+    "title": "Change business address",
+    "content": "An administrator can request a business address change under Business profile. Supporting documents may be requested through the secure upload flow.",
+    "keywords": [
+      "change",
+      "business",
+      "address",
+      "update",
+      "profile"
+    ]
+  },
+  {
+    "id": "payment-cancel",
+    "title": "Cancel scheduled payments",
+    "content": "Open Scheduled payments, select the payment, and choose Cancel before its execution date. Completed payments cannot be cancelled in this flow.",
+    "keywords": [
+      "cancel",
+      "scheduled",
+      "payment",
+      "payments",
+      "pending"
+    ]
+  },
+  {
+    "id": "card-replacement",
+    "title": "Order replacement card",
+    "content": "After blocking the old card, choose Order replacement under Cards. Fictional delivery normally takes 5 business days.",
+    "keywords": [
+      "order",
+      "replacement",
+      "card",
+      "replace",
+      "delivery"
+    ]
+  },
+  {
+    "id": "fees",
+    "title": "Account service fees",
+    "content": "The fictional standard account service fee is 5 demo units monthly. Review the current fictional fee schedule in Documents before accepting a service.",
+    "keywords": [
+      "account",
+      "service",
+      "fees",
+      "fee",
+      "monthly",
+      "charges"
+    ]
+  },
+  {
+    "id": "device-change",
+    "title": "Register new device",
+    "content": "On the login screen select Register new device. Verify using your existing device or use the secure recovery flow if it is unavailable.",
+    "keywords": [
+      "register",
+      "new",
+      "device",
+      "phone",
+      "change",
+      "recovery"
+    ]
+  },
+  {
+    "id": "account-close",
+    "title": "Close business account",
+    "content": "An administrator can request account closure through secure support after settling pending payments and downloading statements.",
+    "keywords": [
+      "close",
+      "closure",
+      "business",
+      "account",
+      "terminate"
+    ]
+  },
+  {
+    "id": "transfer-status",
+    "title": "Track transfer status",
+    "content": "Open Transfers and select the transfer to view its status. Pending means processing has not completed. Contact fictional support if the expected delivery window has passed.",
+    "keywords": [
+      "track",
+      "transfer",
+      "status",
+      "pending",
+      "processing"
+    ]
+  },
+  {
+    "id": "notification-settings",
+    "title": "Payment notification settings",
+    "content": "Open Settings and then Notifications to enable payment alerts. Delivery depends on your device notification permissions.",
+    "keywords": [
+      "payment",
+      "notification",
+      "notifications",
+      "settings",
+      "alerts",
+      "enable"
+    ]
+  }
+]

@@ -1,0 +1,43 @@
+[build-system]
+requires = ["setuptools>=80"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ai-observability-lab"
+version = "0.1.0"
+description = "A fictional banking RAG assistant with trace-driven evaluation"
+requires-python = ">=3.12"
+dependencies = [
+  "fastapi==0.141.1", "uvicorn==0.52.4", "pydantic==2.13.5",
+  "pydantic-settings==2.15.0", "openai==3.10.0", "httpx==0.28.1",
+  "opentelemetry-sdk==1.44.0", "opentelemetry-exporter-otlp-proto-http==1.44.0",
+  "openinference-semantic-conventions==0.1.36", "arize-phoenix-client==3.5.0",
+]
+
+[project.optional-dependencies]
+dev = ["pytest==9.1.1", "pytest-asyncio==1.4.0", "ruff==0.16.6", "mypy==2.3.1", "pyyaml==6.0.3"]
+
+[project.scripts]
+observability-lab = "ai_observability_lab.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+ai_observability_lab = ["data/*.json", "data/*.jsonl", "prompts/*.txt"]
+
+[tool.ruff]
+target-version = "py312"
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+files = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+asyncio_mode = "auto"
