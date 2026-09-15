@@ -1,6 +1,8 @@
 # AI Observability Lab
 
-![Python](https://img.shields.io/badge/python-3.12%2B-3776AB?logo=python&logoColor=white) ![FastAPI](https://img.shields.io/badge/FastAPI-0.141-009688?logo=fastapi&logoColor=white) ![Tests](https://img.shields.io/badge/tests-91%20passing-2ea44f) [![CI](https://github.com/EnesCkmk1/observability/actions/workflows/ci.yml/badge.svg)](https://github.com/EnesCkmk1/observability/actions/workflows/ci.yml)
+<img src="https://skillicons.dev/icons?i=py,fastapi,docker,githubactions&perline=4" alt="Python, FastAPI, Docker and GitHub Actions">
+
+Built with OpenTelemetry and Arize Phoenix, with optional OpenAI and Dynatrace integrations. [![CI](https://github.com/EnesCkmk1/observability/actions/workflows/ci.yml/badge.svg)](https://github.com/EnesCkmk1/observability/actions/workflows/ci.yml)
 
 Production-inspired observability lab for a fictional Banking Support Assistant. The assistant uses a small local policy set; the engineering focus is traceability, evaluation, guardrails, prompt experiments, latency, token usage, and cost visibility.
 
